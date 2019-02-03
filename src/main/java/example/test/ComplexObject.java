@@ -10,6 +10,7 @@ public class ComplexObject implements Serializable
 	
 	private ComplexObjectB complexc;
 	
+	@SuppressWarnings("unused")
 	private ComplexObjectB[] complexd;
 	
 	private String name;
@@ -18,6 +19,7 @@ public class ComplexObject implements Serializable
 
 	private Object anotherObject;
 
+	@SuppressWarnings("unused")
 	private ComplexObjectWithCollection cwc;
 	
 //	private ComplexObject co;
