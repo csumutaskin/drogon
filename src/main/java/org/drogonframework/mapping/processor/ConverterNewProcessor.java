@@ -16,6 +16,9 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -73,7 +76,7 @@ public class ConverterNewProcessor extends AbstractProcessor
 				messager.printMessage(Kind.NOTE, "Annotation's class short name is: " + element.getSimpleName());
 				messager.printMessage(Kind.NOTE, "Annotation's class modifiers is: " + element.getModifiers());				
 								
-				messager.printMessage(Kind.NOTE, "-----------------------------------------------------------------");
+				messager.printMessage(Kind.NOTE, "*****************************************************************");
 				printElements(element);
 				messager.printMessage(Kind.NOTE, "*****************************************************************");
 							
@@ -122,8 +125,10 @@ public class ConverterNewProcessor extends AbstractProcessor
 		{
 			return;
 		}
+		int counter = 1;
 		for (Element enclosedElement : classElement.getEnclosedElements()) 
 		{
+			messager.printMessage(Kind.NOTE, "----------------------------- Field: "+ counter +"--------------------------------  element: " + enclosedElement.getSimpleName() + " type: " + enclosedElement.getKind());
             if (enclosedElement.getKind() == ElementKind.FIELD) 
             {
                 Set<Modifier> modifiers = enclosedElement.getModifiers();
@@ -155,23 +160,39 @@ public class ConverterNewProcessor extends AbstractProcessor
                 
                // TypeMirror erasure = typeUtils.erasure(retType);
                 
-                messager.printMessage(Kind.NOTE, "Mevcut element: " + enclosedElement.getSimpleName());
+                //messager.printMessage(Kind.NOTE, "Mevcut element: " + enclosedElement.getSimpleName());
                // TypeMirror asType = elementUtils.getTypeElement(enclosedElement.getSimpleName()).asType();
                 TypeMirror asType = enclosedElement.asType();
-                messager.printMessage(Kind.NOTE, "Type Erasure una bakilan element: " + enclosedElement.getSimpleName());
-                TypeMirror erasured = typeUtils.erasure(asType);
-                messager.printMessage(Kind.NOTE, "Erasure type i getirildi");
-                if(erasured != null)
+                //messager.printMessage(Kind.NOTE, "Type Erasure una bakilan element: " + enclosedElement.getSimpleName());
+                //TypeMirror erasured = typeUtils.erasure(asType);
+                TypeElement collectionTypes = elementUtils.getTypeElement("java.util.Collection");
+                TypeMirror collectionMirror = collectionTypes.asType();
+
+                if (typeUtils.isAssignable(asType, collectionMirror))
                 {
-                	
-                	  messager.printMessage(Kind.NOTE, "Erasure type yazdiriliyor " + erasured.toString());
-                	sb.append("Generic Type: " + erasured.toString());
+                	messager.printMessage(Kind.NOTE, "Bu propertyn collection tipindedir: " + asType.toString());
+                	TypeMirror genericType = ((DeclaredType) asType).getTypeArguments().get(0);
+                	messager.printMessage(Kind.NOTE, "Bu propertynin Generic Type'i var: " + genericType);
                 }
-                messager.printMessage(Kind.NOTE, "Erasure type i basarili process edildi");
+                if (asType.getKind() == TypeKind.ARRAY) 
+                {
+                	ArrayType asArrayType = (ArrayType) asType;
+                	messager.printMessage(Kind.NOTE, "Bu property array tipinde ve su type tan olusuyor: " + asArrayType.getComponentType().toString());
+                }
+                
+                //messager.printMessage(Kind.NOTE, "Erasure type i getirildi. Generic Type: " + genericType);
+//                if(erasured != null)
+//                {
+//                	
+//                	  messager.printMessage(Kind.NOTE, "Erasure type yazdiriliyor " + erasured.toString());
+//                	sb.append("Generic Type: " + erasured.toString());
+//                }
+//                messager.printMessage(Kind.NOTE, "Erasure type i basarili process edildi");
                       
                 sb.append(enclosedElement.asType()).append(" ").append(enclosedElement.getSimpleName());
                 messager.printMessage(Kind.NOTE, sb.toString());
             }
+            counter++;
         }
 	}
 }

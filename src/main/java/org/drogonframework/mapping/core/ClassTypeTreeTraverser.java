@@ -71,7 +71,7 @@ public class ClassTypeTreeTraverser
 		}
 		for(Field childTypeInTurn: allDeclaredFieldsOfClazz)
 		{
-			if(isAssignableFromAnyCollectionAPI(childTypeInTurn.getType()))
+			if(isAssignableFromAnyCollectionAPI(childTypeInTurn.getType()))//TODO collection of collection ya da collection of array de olabilir!!! en alt birime inene kadar kontrol etmek gerekebilir.
 			{
 				ParameterizedType typeErasuredTypes = (ParameterizedType) childTypeInTurn.getGenericType();
 		        Class<?> erasuredType = (Class<?>) typeErasuredTypes.getActualTypeArguments()[0];//TODO: Map tipleri icin key ve value pairler ayri ayri eklenebilir.
@@ -80,7 +80,7 @@ public class ClassTypeTreeTraverser
 				bfsQueue.offer(erasuredType);
 				
 			}
-			else if(childTypeInTurn.getType().isArray())
+			else if(childTypeInTurn.getType().isArray())//TODO: while ile en alt birimine inene kadar array mi diye kontrol etmek gerekebilir, array of collection bile olabilir, bu duurmda da en alta inene kadar kontrol etmekte fayda var
 			{
 				Class<?> componentType = childTypeInTurn.getType().getComponentType();
 								
