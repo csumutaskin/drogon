@@ -1,30 +1,50 @@
 package example.test;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.drogonframework.mapping.annotation.Converter;
-import org.drogonframework.mapping.entity.ConvertibleDTO;
 
-@Converter(id="merhaba",converterEntity="UmutClass")
-public class Sample implements ConvertibleDTO
+@Converter(converterEntity="Sample222",id="umut")
+@SuppressWarnings(value= {"unused","rawtypes"})
+public class Sample 
 {
-	public String deneme;
-	
-	//public ComplexObject a;
-
-	public String getDeneme() {
-		return deneme;
+	private Sample2 mySample;
+	private List<String> myListOfString;
+	private int myInt;
+	private Long[] myLongArray;
+	private List listWithoutGenerics;
+	private Map<String, Long> mapWithGenerics;
+	private List<List<String>> nestedListWithGenerics;//bunun extractionunda kaldim
+	private List<Map> nestedListAndMapWithoutGenerics;
+	private List<Set> nestedCollectionWithoutGenerics;
+	private Long[][] nestedLongArray;
+	private Sample2[][] nestedObjectArray;
+	private List<Sample3>[] arrayOfListOfSample3Object; 
+	private List<Long[]> nestedArrayInList;
+		
+	public Sample2 getMySample() {
+		return mySample;
+	}
+	public void setMySample(Sample2 mySample) {
+		this.mySample = mySample;
 	}
 
-	public void setDeneme(String deneme) {
-		this.deneme = deneme;
+	public int getMyInt() {
+		return myInt;
 	}
-
-//	public ComplexObject getA() {
-//		return a;
-//	}
-//
-//	public void setA(ComplexObject a) {
-//		this.a = a;
-//	}
+	public void setMyInt(int myInt) {
+		this.myInt = myInt;
+	}
 	
+	public void go()
+	{
+		
+	}
 	
+	class innerClass
+	{
+		private String shouldntBeAdded;		
+	}	
 }

@@ -58,14 +58,14 @@ public class ConverterNewProcessor extends AbstractProcessor
 	{
 		try
 		{
-		messager.printMessage(Kind.NOTE, "Started processing...");
-		if(annotations == null || annotations.isEmpty())
+			messager.printMessage(Kind.NOTE, "Started processing...........................................");
+			if(annotations == null || annotations.isEmpty())
 		{
 			return false;
 		}
 		for(TypeElement annotation : annotations)
 		{
-			messager.printMessage(Kind.NOTE, "Annotation found: " + annotation.getSimpleName());
+			//messager.printMessage(Kind.NOTE, "Annotation found: " + annotation.getSimpleName());
 			Set<? extends Element> elementsAnnotatedWith = roundEnvironment.getElementsAnnotatedWith(annotation);
 			if(elementsAnnotatedWith == null || elementsAnnotatedWith.isEmpty())
 			{

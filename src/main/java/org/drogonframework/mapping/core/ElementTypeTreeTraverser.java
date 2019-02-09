@@ -35,8 +35,7 @@ public class ElementTypeTreeTraverser
 	private Messager messager;
 
 	public ElementTypeTreeTraverser(Elements elementUtils, Types typeUtils, Messager messager)
-	{
-		messager.printMessage(Kind.NOTE, "Constructing ElementTypeTreeTraverser");
+	{		
 		this.elementUtils = elementUtils;
 		this.typeUtils = typeUtils;
 		this.messager = messager;
@@ -49,13 +48,10 @@ public class ElementTypeTreeTraverser
 	 */
 	public boolean traverseUsingBFS(Element clazz)
 	{
-		messager.printMessage(Kind.NOTE, "Before initializing environment");
 		initializeEnvironment();
-		messager.printMessage(Kind.NOTE, "Before putting first class to queue");
 		bfsQueue.offer(clazz);
 		
 		cc = new ElementTypeTreeToElementTypeGraphConverter(clazz);
-		messager.printMessage(Kind.NOTE, "Start visiting queue");
 		while(!bfsQueue.isEmpty())
 		{
 			visitFromQueue();
@@ -69,13 +65,12 @@ public class ElementTypeTreeTraverser
 	 */
 	public void visitFromQueue()
 	{
-		messager.printMessage(Kind.NOTE, "In visit method...");
 		Element clazz = bfsQueue.poll();
-		messager.printMessage(Kind.NOTE, "Getting element from queue: " + clazz.toString());
 		if(clazz == null)
 		{
 			return;
 		}
+		messager.printMessage(Kind.NOTE, "Class: " + clazz.toString() +" retrieved from queue");
 
 		alreadyVisited.add(clazz);
 		Collection<Element> allDeclaredFieldsOfClazz = new ArrayList<>();
@@ -91,7 +86,7 @@ public class ElementTypeTreeTraverser
 		
 		while(superClassasElement != null && !superClassasElement.toString().equals("java.lang.Object"))
 		{
-			messager.printMessage(Kind.NOTE, clazz.toString() + " classinin super classi var: " + superClassasElement.toString());
+			messager.printMessage(Kind.NOTE, "Class: " + clazz.toString() + ", SuperClass: " + superClassasElement.toString());
 			addAllRelevantFieldsOfClassToFinalCollection(allDeclaredFieldsOfClazz, superClassasElement);
 			
 			t = (TypeElement)superClassasElement;
@@ -99,49 +94,91 @@ public class ElementTypeTreeTraverser
 			superClassAsDeclared = (DeclaredType)superClass; 
 			superClassasElement = superClassAsDeclared.asElement();
 		}
+		messager.printMessage(Kind.NOTE, "---------------------------------------------------------------------------------------");
 		if(allDeclaredFieldsOfClazz.isEmpty())
 		{
-			messager.printMessage(Kind.NOTE, clazz.toString() + " classinin hic bir tanimli fieldi yok...");
+			messager.printMessage(Kind.NOTE, "Class: " + clazz.toString() + " has no instance variable!");
 			return;
 		}
 		for(Element childTypeInTurn: allDeclaredFieldsOfClazz)
-		{
-			messager.printMessage(Kind.NOTE, clazz.toString() + " classinin fieldlari process edilecek. Siradaski field: " + childTypeInTurn.toString());
+		{			
+			messager.printMessage(Kind.NOTE, "Class: " + clazz.toString() + ", Field: " + childTypeInTurn.toString() + ", Type: " + childTypeInTurn.asType());
 			if(isAssignableFromAnyCollectionAPI(childTypeInTurn))
 			{
-				messager.printMessage(Kind.NOTE, clazz.toString() + " classinin collection olan fieldi " + childTypeInTurn.toString() +" generic tipi var");
-				//TODO map ler i diger collectionlardan ayirip key value olarak dusunmek gerekir mi ??
-     			DeclaredType dt = (DeclaredType)childTypeInTurn.asType();
-				messager.printMessage(Kind.NOTE, "bunun birazdan generic type i alinacak" + dt);//java.util.list<E>
-				messager.printMessage(Kind.NOTE, "generic type lar: " + dt.getTypeArguments());
-				//TypeMirror genericType = ((DeclaredType) childTypeInTurn.asType()).getTypeArguments().get(0);
-				TypeMirror genericType = dt.getTypeArguments().get(0);
-				messager.printMessage(Kind.NOTE, "generic type lardan ilki: " + genericType.toString());//<E>
-				DeclaredType currentGenericType = (DeclaredType)genericType;
-				messager.printMessage(Kind.NOTE, clazz.toString() + " classinin genericli fieldi " + childTypeInTurn.toString() +" generici: " + currentGenericType + " dir...");
-				cc.addEdge(clazz, currentGenericType.asElement());
-				bfsQueue.offer(currentGenericType.asElement());
+				//TODO modify below code for this local to be added
+				Element innerMostElement = extractMostInnerElement(childTypeInTurn);
+				
+//				//TODO map ler i diger collectionlardan ayirip key value olarak dusunmek gerekir mi ??
+//     			DeclaredType dt = (DeclaredType)childTypeInTurn.asType();
+//				//TypeMirror genericType = ((DeclaredType) childTypeInTurn.asType()).getTypeArguments().get(0);
+//     			List<? extends TypeMirror> typeArguments = dt.getTypeArguments();
+//     			if(typeArguments != null && typeArguments.size() > 0)
+//     			{
+//     				TypeMirror genericType = typeArguments.get(0);
+//     				DeclaredType currentGenericType = (DeclaredType)genericType;
+//     				messager.printMessage(Kind.NOTE, "Class: " + clazz.toString() + " Field++: " + currentGenericType.asElement().toString() + " (GENERIC)");
+//     				cc.addEdge(clazz, currentGenericType.asElement());
+//     				bfsQueue.offer(currentGenericType.asElement());
+//     			}
+//     			else
+//     			{
+//     				messager.printMessage(Kind.NOTE, "Class: " + clazz.toString() + " Field--: " + childTypeInTurn.asType() + " (COLL WITH NO GENERIC)");
+//     			}
+     			
+     			
+     			
+     			if(innerMostElement != null)
+     			{
+     				messager.printMessage(Kind.NOTE, "Class: " + clazz.toString() + " Field++: " + innerMostElement.toString() + " (GENERIC)");
+     				cc.addEdge(clazz, innerMostElement);
+     				bfsQueue.offer(innerMostElement);
+     			}
+     			else
+     			{
+     				messager.printMessage(Kind.NOTE, "Class: " + clazz.toString() + " Field of uppermost is null--: " + childTypeInTurn.toString() + " (GENERIC NO TYPE)");
+     			}
 				
 			}
-			if(isArray(childTypeInTurn))
+			else if(isArray(childTypeInTurn))
 			{
-				messager.printMessage(Kind.NOTE, clazz.toString() + " classinin array tipi olan fieldi: " + childTypeInTurn.toString());
-            	ArrayType asArrayType = (ArrayType) childTypeInTurn.asType();
-            	DeclaredType typeOfArray = (DeclaredType)asArrayType.getComponentType();
-            	if(typeOfArray != null)
-            	{
-            		cc.addEdge(clazz, typeOfArray.asElement());
-            		bfsQueue.offer(typeOfArray.asElement());
-            	}
+				//TODO modify below code for this local to be added
+				Element innerMostElement = extractMostInnerElement(childTypeInTurn);
 				
+//	           	ArrayType asArrayType = (ArrayType) childTypeInTurn.asType();
+//            	DeclaredType typeOfArray = (DeclaredType)asArrayType.getComponentType();
+//            	if(typeOfArray != null)
+//            	{
+//            		messager.printMessage(Kind.NOTE, "Class: " + clazz.toString() + " Field++: " + typeOfArray.asElement().toString() + " (ARRAY)");
+//            		cc.addEdge(clazz, typeOfArray.asElement());
+//            		bfsQueue.offer(typeOfArray.asElement());
+//            	}
+				
+				if(innerMostElement != null)
+				{
+					messager.printMessage(Kind.NOTE, "Class: " + clazz.toString() + " Field++: " + innerMostElement.toString() + " (ARRAY)");
+            		cc.addEdge(clazz, innerMostElement);
+            		bfsQueue.offer(innerMostElement);
+				}
 			}
 			else
 			{
 				if(childTypeInTurn != null)
 				{
-					messager.printMessage(Kind.NOTE, clazz.toString() + " classinin fieldi queue ya eklenecek: " + childTypeInTurn.toString());
-					cc.addEdge(clazz, childTypeInTurn);
-					bfsQueue.offer(childTypeInTurn);
+					//Element typeOfElement = typeUtils.asElement(childTypeInTurn.asType());
+					//messager.printMessage(Kind.NOTE, "Class: " + clazz.toString() + " Field++: " + typeOfElement.toString() + " (NORMAL)");
+					
+					if(!isPrimitive(childTypeInTurn))
+					{
+						messager.printMessage(Kind.NOTE, "Class: " + clazz.toString() + " Field++: " + typeUtils.asElement(childTypeInTurn.asType()).toString() + " (NORMAL)");
+						cc.addEdge(clazz, childTypeInTurn);
+						bfsQueue.offer(childTypeInTurn);
+						//cc.addEdge(clazz, typeOfElement);
+						//bfsQueue.offer(typeOfElement);	
+					}
+					else//primitive type
+					{
+						messager.printMessage(Kind.NOTE, "Class: " + clazz.toString() + " Field--: " + childTypeInTurn.asType() + " (PRIMITIVE: " + childTypeInTurn + ")");
+					}					
 				}
 			}
 		}
@@ -156,18 +193,58 @@ public class ElementTypeTreeTraverser
      *                                    PRIVATE METHODS                                             *
      **************************************************************************************************/
 
+	/*
+	 * Extracts the inner most element from nested collection or arrays
+	 */
+	private Element extractMostInnerElement(Element element)//TODO: en ic elemanina kadar extract et..
+	{
+		Element toReturn = element;
+		messager.printMessage(Kind.NOTE, "EXTRACTING MOST INNER FOR ELEMENT: " + toReturn.toString());
+		while(toReturn != null && (isArray(toReturn) || isAssignableFromAnyCollectionAPI(toReturn)))
+		{
+			if(isArray(toReturn))
+			{
+				ArrayType asArrayType = (ArrayType) toReturn.asType();
+				DeclaredType typeOfArray = (DeclaredType)asArrayType.getComponentType();
+            	if(typeOfArray != null)
+            	{
+            		messager.printMessage(Kind.NOTE, "EXTRACTING MOST INNER: " + typeOfArray.asElement().toString() + " (ARRAY)");
+            		toReturn = typeOfArray.asElement();
+            	}
+			}
+			else if(isAssignableFromAnyCollectionAPI(toReturn))
+			{
+				
+				DeclaredType dt = (DeclaredType)toReturn.asType();
+     			List<? extends TypeMirror> typeArguments = dt.getTypeArguments();
+     			if(typeArguments != null && typeArguments.size() > 0)
+     			{
+     				TypeMirror genericType = typeArguments.get(0);
+     				DeclaredType currentGenericType = (DeclaredType)genericType;
+     				messager.printMessage(Kind.NOTE, "EXTRACTING MOST INNER: " + currentGenericType.asElement().toString() + " (GENERIC)");
+     				toReturn = currentGenericType.asElement();
+     			}
+     			else
+     			{
+     				messager.printMessage(Kind.NOTE, "EXTRACTING MOST INNER: " + toReturn.toString() + " (NO GENERIC TYPE - SETTING RETURN TO NULL)");
+     				toReturn = null;
+     				//TODO: get precaution, maybe return null...
+     			}
+			}
+		}
+		messager.printMessage(Kind.NOTE, "EXTRACTED MOST INNER IS: " + toReturn);
+		return toReturn;
+	}
+	
 	private boolean isAssignableFromAnyCollectionAPI(Element clazz)
 	{
-		messager.printMessage(Kind.NOTE, clazz.toString() + " classi collection tipinde mi bakilacak");
 		for(TypeMirror collectionClass : collectionClasses)
 		{
 			if(typeUtils.isAssignable(clazz.asType(), collectionClass))
 			{
-				messager.printMessage(Kind.NOTE, clazz.toString() + " classi collection tipindeymis evet...");
 				return true;
 			}
 		}
-		messager.printMessage(Kind.NOTE, clazz.toString() + " classi collection tipinde degil, false donecek");
 		return false;
 	}
 	
@@ -205,7 +282,7 @@ public class ElementTypeTreeTraverser
 	
 	private void addAllRelevantFieldsOfClassToFinalCollection(Collection<Element> finalCollection, Element clazz)
 	{		
-		if(clazz.getKind() != ElementKind.CLASS)
+		if(clazz.getKind() != ElementKind.CLASS)//TODO: interface should be checked here too...
 		{
 			return;
 		}
@@ -220,12 +297,21 @@ public class ElementTypeTreeTraverser
             	Set<Modifier> modifiers = enclosedElement.getModifiers();
             	if(!modifiers.contains(Modifier.STATIC))
             	{
-            		messager.printMessage(Kind.NOTE, " " + clazz.toString() + " classinin listeye eklenen alt elemani: " + enclosedElement.toString() + " tipin class versiyonu: " + typeUtils.asElement(enclosedElement.asType()));//TODO burda sample2 diyor classi koymasi lazim...
-            		//finalCollection.add(enclosedElement);
-            		//finalCollection.add(typeUtils.asElement(enclosedElement.asType())); BU INTERFACE VE CLASS OLARAK EKLIYOR FIELD OLARAK EKLE
+            		//finalCollection.add(typeUtils.asElement(enclosedElement.asType())); //Change this until it is INTERFACE or CLASS kind.. Kind should be FIELD to be added to queue
+            		
+            		messager.printMessage(Kind.NOTE, "Class: " + clazz.toString() + ", ADDING: " + enclosedElement + ", TYPE (UTILS): " + typeUtils.asElement(enclosedElement.asType()) + ", TYPE NO CAST: " + enclosedElement.asType() + ", IS PRIMITIVE: " + isPrimitive(enclosedElement));
             		finalCollection.add(enclosedElement);
             	}
             }
 		}		
+	}
+	
+	private boolean isPrimitive(Element field)
+	{
+		if(field == null)
+		{
+			return false;
+		}
+		return field.asType().getKind().isPrimitive();
 	}
 }
