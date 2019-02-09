@@ -24,6 +24,8 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic.Kind;
 
+import org.drogonframework.mapping.core.ElementTypeTreeTraverser;
+
 import com.google.auto.service.AutoService;
 
 @SupportedAnnotationTypes("org.drogonframework.mapping.annotation.Converter")
@@ -71,41 +73,44 @@ public class ConverterNewProcessor extends AbstractProcessor
 			}
 			for(Element element : elementsAnnotatedWith)
 			{
-				messager.printMessage(Kind.NOTE, "Annotation is: " + annotation);
-				messager.printMessage(Kind.NOTE, "Annotation's class/interface type is: " + element.getKind());
-				messager.printMessage(Kind.NOTE, "Annotation's class short name is: " + element.getSimpleName());
-				messager.printMessage(Kind.NOTE, "Annotation's class modifiers is: " + element.getModifiers());				
-								
-				messager.printMessage(Kind.NOTE, "*****************************************************************");
-				printElements(element);
-				messager.printMessage(Kind.NOTE, "*****************************************************************");
-							
-				TypeElement t = (TypeElement)element;
+				ElementTypeTreeTraverser et = new ElementTypeTreeTraverser(elementUtils, typeUtils, messager);
+				et.traverseUsingBFS(element);
 				
-				//messager.printMessage(Kind.NOTE, "Annotation's class full name is: " + t.getQualifiedName());
-				//messager.printMessage(Kind.NOTE, "......Super class...... " + t.getSuperclass());
-				
-				List<? extends TypeMirror> interfaces = t.getInterfaces();
-				for(TypeMirror interfac : interfaces)
-				{
-					//messager.printMessage(Kind.NOTE, ".....................interfaces.................." + interfac.getKind() + "---" + interfac);
-					
-					TypeMirror comparable = processingEnv.getElementUtils().getTypeElement("org.drogonframework.mapping.entity.ConvertibleDTO").asType();
-					boolean isComparable = processingEnv.getTypeUtils().isAssignable(interfac, comparable);
-//									
-//					if(isComparable)
-//						messager.printMessage(Kind.NOTE, "!!!..................interfaces is of type ConvertibleDTO TRUE !!!!..............");
-//					else
-//						messager.printMessage(Kind.NOTE, "!!!..................interfaces is of type ConvertibleDTO FALSE !!!!..............");
-				}
-//				if(element.getKind() != ElementKind.CLASS)
+//				messager.printMessage(Kind.NOTE, "Annotation is: " + annotation);
+//				messager.printMessage(Kind.NOTE, "Annotation's class/interface type is: " + element.getKind());
+//				messager.printMessage(Kind.NOTE, "Annotation's class short name is: " + element.getSimpleName());
+//				messager.printMessage(Kind.NOTE, "Annotation's class modifiers is: " + element.getModifiers());				
+//								
+//				messager.printMessage(Kind.NOTE, "*****************************************************************");
+//				printElements(element);
+//				messager.printMessage(Kind.NOTE, "*****************************************************************");
+//							
+//				TypeElement t = (TypeElement)element;
+//				
+//				//messager.printMessage(Kind.NOTE, "Annotation's class full name is: " + t.getQualifiedName());
+//				//messager.printMessage(Kind.NOTE, "......Super class...... " + t.getSuperclass());
+//				
+//				List<? extends TypeMirror> interfaces = t.getInterfaces();
+//				for(TypeMirror interfac : interfaces)
 //				{
-//					messager.printMessage(Kind.ERROR, "@Converter is a class level annotation only",element);
+//					//messager.printMessage(Kind.NOTE, ".....................interfaces.................." + interfac.getKind() + "---" + interfac);
+//					
+//					TypeMirror comparable = processingEnv.getElementUtils().getTypeElement("org.drogonframework.mapping.entity.ConvertibleDTO").asType();
+//					boolean isComparable = processingEnv.getTypeUtils().isAssignable(interfac, comparable);
+////									
+////					if(isComparable)
+////						messager.printMessage(Kind.NOTE, "!!!..................interfaces is of type ConvertibleDTO TRUE !!!!..............");
+////					else
+////						messager.printMessage(Kind.NOTE, "!!!..................interfaces is of type ConvertibleDTO FALSE !!!!..............");
 //				}
-//				else
-//				{
-//					messager.printMessage(Kind.NOTE, "It is right to put this annotation as class level :)");
-//				}
+////				if(element.getKind() != ElementKind.CLASS)
+////				{
+////					messager.printMessage(Kind.ERROR, "@Converter is a class level annotation only",element);
+////				}
+////				else
+////				{
+////					messager.printMessage(Kind.NOTE, "It is right to put this annotation as class level :)");
+////				}
 			}
 			}
 		}
@@ -121,6 +126,7 @@ public class ConverterNewProcessor extends AbstractProcessor
 	
 	private void printElements(Element classElement)
 	{
+		
 		if(classElement.getKind() != ElementKind.CLASS)
 		{
 			return;

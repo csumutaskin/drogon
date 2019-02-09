@@ -8,7 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.annotation.processing.Messager;
 import javax.lang.model.element.Element;
+import javax.tools.Diagnostic.Kind;
 
 public class ElementTypeTreeToElementTypeGraphConverter 
 {
@@ -140,7 +142,7 @@ private Map<Element, LinkedHashSet<Element>> adjacencyList = new HashMap<>();
 		return false;
 	}
 	
-	public void traverse()
+	public void traverse(Messager messager)
 	{
 		Iterator<Element> iterator = adjacencyList.keySet().iterator();
 		while(iterator.hasNext())
@@ -148,13 +150,18 @@ private Map<Element, LinkedHashSet<Element>> adjacencyList = new HashMap<>();
 			Element beginVertex = iterator.next();
 			LinkedHashSet<Element> edgesOfVertex = adjacencyList.get(beginVertex);
 			
-			System.out.print( beginVertex.getSimpleName() + " -> ");
+			//System.out.print( beginVertex.getSimpleName() + " -> ");
+			messager.printMessage(Kind.NOTE, beginVertex.getSimpleName() + "->");
 			Iterator<Element> iteratorOfEdgeEnds = edgesOfVertex.iterator();
+			StringBuilder sb = new StringBuilder();
 			while(iteratorOfEdgeEnds.hasNext())
 			{				
-				System.out.print(iteratorOfEdgeEnds.next() + ", ");
+				//System.out.print(iteratorOfEdgeEnds.next() + ", ");
+				//messager.printMessage(Kind.NOTE, iteratorOfEdgeEnds.next() + ", ");
+				sb.append(iteratorOfEdgeEnds.next()).append(", ");
 			}
-			System.out.println();
+			messager.printMessage(Kind.NOTE, sb.toString());
+			//System.out.println();
 		}
 	}
 }
