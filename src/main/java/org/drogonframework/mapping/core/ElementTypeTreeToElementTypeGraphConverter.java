@@ -17,9 +17,12 @@ public class ElementTypeTreeToElementTypeGraphConverter
 private Map<Element, LinkedHashSet<Element>> adjacencyList = new HashMap<>();
 	
 	private List<Element> classesRegistered;
+	private Messager messager;
 	
-	public ElementTypeTreeToElementTypeGraphConverter(Element rootNode)
+	public ElementTypeTreeToElementTypeGraphConverter(Element rootNode, Messager messager)
 	{
+		this.messager = messager;
+		
 		classesRegistered = new ArrayList<>();
 		classesRegistered.add(rootNode);
 	
@@ -57,6 +60,7 @@ private Map<Element, LinkedHashSet<Element>> adjacencyList = new HashMap<>();
 		
 		if(checkIsCyclicAfterAnEdgeAdded())
 		{
+			messager.printMessage(Kind.ERROR, "!!!!!!!!!!!!!!! Cyclic loop detected in current class association tree");
 			throw new RuntimeException("Cyclic loop detected in current class association tree");
 		}		
 	}

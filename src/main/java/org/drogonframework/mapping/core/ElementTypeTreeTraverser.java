@@ -12,6 +12,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
@@ -51,7 +52,7 @@ public class ElementTypeTreeTraverser
 		initializeEnvironment();
 		bfsQueue.offer(clazz);
 		
-		cc = new ElementTypeTreeToElementTypeGraphConverter(clazz);
+		cc = new ElementTypeTreeToElementTypeGraphConverter(clazz, messager);
 		while(!bfsQueue.isEmpty())
 		{
 			visitFromQueue();
@@ -130,8 +131,8 @@ public class ElementTypeTreeTraverser
      			if(innerMostElement != null)
      			{
      				messager.printMessage(Kind.NOTE, "Class: " + clazz.toString() + " Field++: " + innerMostElement.toString() + " (GENERIC)");
-     				cc.addEdge(clazz, innerMostElement);
-     				bfsQueue.offer(innerMostElement);
+     				cc.addEdge(clazz, innerMostElement);//TODO eger onceden mevcutsa bu edge i ekleme bir daha kontrol et
+     				bfsQueue.offer(innerMostElement);//TODO eger onceden mevcutsa bu edge i ekleme bir daha kontrol et
      			}
      			else
      			{
@@ -156,8 +157,8 @@ public class ElementTypeTreeTraverser
 				if(innerMostElement != null)
 				{
 					messager.printMessage(Kind.NOTE, "Class: " + clazz.toString() + " Field++: " + innerMostElement.toString() + " (ARRAY)");
-            		cc.addEdge(clazz, innerMostElement);
-            		bfsQueue.offer(innerMostElement);
+            		cc.addEdge(clazz, innerMostElement);//TODO eger onceden mevcutsa bu edge i ekleme bir daha kontrol et
+            		bfsQueue.offer(innerMostElement);//TODO eger onceden mevcutsa bu edge i ekleme bir daha kontrol et
 				}
 			}
 			else
@@ -170,8 +171,10 @@ public class ElementTypeTreeTraverser
 					if(!isPrimitive(childTypeInTurn))
 					{
 						messager.printMessage(Kind.NOTE, "Class: " + clazz.toString() + " Field++: " + typeUtils.asElement(childTypeInTurn.asType()).toString() + " (NORMAL)");
-						cc.addEdge(clazz, childTypeInTurn);
-						bfsQueue.offer(childTypeInTurn);
+						cc.addEdge(clazz, typeUtils.asElement(childTypeInTurn.asType()));//TODO eger onceden mevcutsa bu edge i ekleme bir daha kontrol et
+						bfsQueue.offer(typeUtils.asElement(childTypeInTurn.asType()));//TODO eger onceden mevcutsa bu edge i ekleme bir daha kontrol et
+						//cc.addEdge(clazz, childTypeInTurn);
+						//bfsQueue.offer(childTypeInTurn);
 						//cc.addEdge(clazz, typeOfElement);
 						//bfsQueue.offer(typeOfElement);	
 					}
@@ -199,30 +202,92 @@ public class ElementTypeTreeTraverser
 	private Element extractMostInnerElement(Element element)//TODO: en ic elemanina kadar extract et..
 	{
 		Element toReturn = element;
-		messager.printMessage(Kind.NOTE, "EXTRACTING MOST INNER FOR ELEMENT: " + toReturn.toString());
+		TypeMirror mirrorInLoop = null;
+		messager.printMessage(Kind.NOTE, "EXTRACTING MOST INNER FOR ELEMENT: " + toReturn.toString() + " KIND: " + toReturn.getKind());
 		while(toReturn != null && (isArray(toReturn) || isAssignableFromAnyCollectionAPI(toReturn)))
-		{
+		{			
 			if(isArray(toReturn))
 			{
-				ArrayType asArrayType = (ArrayType) toReturn.asType();
-				DeclaredType typeOfArray = (DeclaredType)asArrayType.getComponentType();
-            	if(typeOfArray != null)
-            	{
-            		messager.printMessage(Kind.NOTE, "EXTRACTING MOST INNER: " + typeOfArray.asElement().toString() + " (ARRAY)");
-            		toReturn = typeOfArray.asElement();
-            	}
+				if(toReturn.getKind() == ElementKind.FIELD)
+				{
+				messager.printMessage(Kind.NOTE, "ARRAY ARRAY ARRAY  1111");
+					ArrayType asArrayType = (ArrayType) toReturn.asType();
+					TypeMirror componentType = asArrayType.getComponentType();
+					messager.printMessage(Kind.NOTE, "ARRAY ARRAY ARRAY : " + componentType + " (!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!)" + componentType.getKind() + " KIND: " + typeUtils.asElement(componentType).getKind());
+					mirrorInLoop = componentType;
+					toReturn = typeUtils.asElement(componentType);
+					
+					//Previous code below
+//					DeclaredType typeOfArray = (DeclaredType)asArrayType.getComponentType();
+//					if(typeOfArray != null)
+//					{
+//						messager.printMessage(Kind.NOTE, "EXTRACTING MOST INNER: " + typeOfArray.asElement().toString() + " (ARRAY)");
+//						toReturn = typeOfArray.asElement();
+//					}
+					//Previous code above
+				}
+				else if(toReturn.getKind() == ElementKind.CLASS || toReturn.getKind() == ElementKind.INTERFACE)
+				{
+					ArrayType asArrayType = (ArrayType) toReturn.asType();
+					TypeMirror componentType = asArrayType.getComponentType();
+					messager.printMessage(Kind.NOTE, "SU AN TORETURN CLASS/INTERFACE TYPE OLDUGUNDAN BURADA: " + toReturn + " KIND: " + toReturn.getKind());
+				}
 			}
 			else if(isAssignableFromAnyCollectionAPI(toReturn))
 			{
-				
-				DeclaredType dt = (DeclaredType)toReturn.asType();
-     			List<? extends TypeMirror> typeArguments = dt.getTypeArguments();
+				messager.printMessage(Kind.NOTE, "Su anki nested generic tipi : " + toReturn.getKind() + " ToString: " + toReturn.toString());
+				List<? extends TypeMirror> typeArguments = null;
+				if(toReturn.getKind() == ElementKind.FIELD)
+				{
+					DeclaredType dt = (DeclaredType)toReturn.asType();
+					typeArguments = dt.getTypeArguments();
+				}
+				else if(toReturn.getKind() == ElementKind.CLASS || toReturn.getKind() == ElementKind.INTERFACE)
+				{
+//					List<TypeParameterElement> enclosedElements = (List<TypeParameterElement>)((TypeElement)toReturn).getTypeParameters();	
+					
+					//!!!!!!!!!!!!!!!!! BURDAYIM private List<List<String>> nestedListWithGenerics icin hala generic olarak  <E> aliyoruz.. duzelt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//					toReturn= enclosedElements.get(0).getGenericElement();//TODO: burasi type parameter element list olmayabilir degisik nesnelerde (ust satirdaki atama) incele
+					
+					DeclaredType dtype = (DeclaredType)mirrorInLoop;
+					List<? extends TypeMirror> typeArguments2 = dtype.getTypeArguments();
+					if(typeArguments2 != null && typeArguments2.size() >0)
+					{
+						TypeMirror typeMirror = typeArguments2.get(0);
+						DeclaredType currentTypeInLoop = (DeclaredType)typeMirror;
+						
+						toReturn = currentTypeInLoop.asElement();
+						mirrorInLoop = typeMirror;
+						messager.printMessage(Kind.NOTE, "COLLECTION LOOP INTERFACE TIPINDE: " + mirrorInLoop);
+						continue;
+					}
+				}
+					
      			if(typeArguments != null && typeArguments.size() > 0)
      			{
      				TypeMirror genericType = typeArguments.get(0);
      				DeclaredType currentGenericType = (DeclaredType)genericType;
      				messager.printMessage(Kind.NOTE, "EXTRACTING MOST INNER: " + currentGenericType.asElement().toString() + " (GENERIC)");
-     				toReturn = currentGenericType.asElement();
+     				
+     				
+     				
+     				if("nestedListWithGenerics".equals(toReturn.toString()))
+     				{
+     					messager.printMessage(Kind.NOTE, "***????***: Nested enclosing element: " + element.getEnclosingElement());
+     					messager.printMessage(Kind.NOTE, "***????***: " + currentGenericType.asElement().toString() + ", BU DA ONEMLI: " + currentGenericType.getEnclosingType());
+     					messager.printMessage(Kind.NOTE, "***????***: " + typeUtils.asElement(currentGenericType));
+     					messager.printMessage(Kind.NOTE, "***????***: " + currentGenericType.getTypeArguments().get(0));
+     					messager.printMessage(Kind.NOTE, "***????***: " + genericType + " !!!!! " + typeUtils.asElement(genericType));
+     					
+     					
+     					
+//     					messager.printMessage(Kind.NOTE, "***????***: " + ((TypeElement)element).getTypeParameters());
+//     					messager.printMessage(Kind.NOTE, "***????***: " + ((TypeElement)genericType).getTypeParameters());
+//     					messager.printMessage(Kind.NOTE, "***????***: " + ((TypeElement)currentGenericType).getTypeParameters());
+     				}
+     				
+     				mirrorInLoop = genericType;
+     				toReturn = currentGenericType.asElement(); //Buraya generictype (TypeMirror) to Element gelmesi lazim, generic bir tek orada korunuyor. typeUtils classi aldigi icin bozuyor.
      			}
      			else
      			{
