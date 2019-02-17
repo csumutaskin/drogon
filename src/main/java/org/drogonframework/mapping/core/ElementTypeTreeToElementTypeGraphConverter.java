@@ -34,7 +34,7 @@ public class ElementTypeTreeToElementTypeGraphConverter
 	{
 		if(!classesRegistered.contains(parentNode))
 		{
-			throw new RuntimeException("no parent node in graph");//TODO: Define own exception later on...						
+			throw new RuntimeException("No parent node in graph");//TODO: Define own exception later on...						
 		}
 			
 		//register class if not exists
@@ -55,13 +55,12 @@ public class ElementTypeTreeToElementTypeGraphConverter
 		
 		if(!edgeAdded)
 		{
-			throw new RuntimeException("Eklenecek edge in source vertexi bulunamadi");
+			throw new RuntimeException("No source vertex found in graph for the edge being added");
 		}
 		
 		if(checkIsCyclicAfterAnEdgeAdded())
 		{
-			messager.printMessage(Kind.ERROR, "!!!!!!!!!!!!!!! Cyclic loop detected in current class association tree");
-			throw new RuntimeException("Cyclic loop detected in current class association tree");
+			//messager.printMessage(Kind.ERROR, "!!!!!!!!!!!!!!! Cyclic loop detected in current class association tree");			
 		}		
 	}
 	
@@ -96,9 +95,9 @@ public class ElementTypeTreeToElementTypeGraphConverter
 			StringBuilder errorMessageBuilder = new StringBuilder("A cyclic loop found between classes: ");
 			for(int i = 0; i< recursiveClassesList.size(); i++)
 			{				
-				errorMessageBuilder.append(recursiveClassesList.get(i)).append(" ");
+				errorMessageBuilder.append(recursiveClassesList.get(i)).append(", ");
 			}
-			errorMessageBuilder.append(", rearrange class associations.");
+			errorMessageBuilder.append(" if you are still willing to use @Converter annotation with these classes, please be sure that deep copying of objects does not result with an infinite loop.");
 			throw new RuntimeException(errorMessageBuilder.toString());
 			//return true;
 		}
@@ -127,15 +126,7 @@ public class ElementTypeTreeToElementTypeGraphConverter
 			{
 				recursiveClassesList.add(clzz);
 			}
-			
 			isCyclicAssociation(indexOf, visitedVertices, recursionHolder, recursiveClassesList);
-			/*
-			if(isCyclicAssociation(indexOf, visitedVertices, recursionHolder, recursiveClassesList))
-			{
-				return true;
-			}
-			*/
-			
 			if(indexOf != -1)//class found in main list
 			{
 				recursiveClassesList.remove(clzz);
@@ -154,18 +145,15 @@ public class ElementTypeTreeToElementTypeGraphConverter
 			Element beginVertex = iterator.next();
 			LinkedHashSet<Element> edgesOfVertex = adjacencyList.get(beginVertex);
 			
-			//System.out.print( beginVertex.getSimpleName() + " -> ");
 			messager.printMessage(Kind.NOTE, beginVertex.getSimpleName() + "->");
 			Iterator<Element> iteratorOfEdgeEnds = edgesOfVertex.iterator();
 			StringBuilder sb = new StringBuilder();
 			while(iteratorOfEdgeEnds.hasNext())
 			{				
-				//System.out.print(iteratorOfEdgeEnds.next() + ", ");
 				//messager.printMessage(Kind.NOTE, iteratorOfEdgeEnds.next() + ", ");
 				sb.append(iteratorOfEdgeEnds.next()).append(", ");
 			}
 			messager.printMessage(Kind.NOTE, sb.toString());
-			//System.out.println();
 		}
 	}
 }

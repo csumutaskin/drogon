@@ -65,16 +65,15 @@ public class ConverterNewProcessor extends AbstractProcessor
 				try
 				{
 					et.traverseUsingBFS(element);
-					//et.printGraph();
 				}
 				catch(RuntimeException re)
 				{
-					messager.printMessage(Kind.ERROR, "Error Message is: "  + re.getMessage());
+					messager.printMessage(Kind.ERROR, re.getMessage(), element);
 					return false;
 				}
 			
 			}
-		}
+		}		
 		return false;
 	}
 	
