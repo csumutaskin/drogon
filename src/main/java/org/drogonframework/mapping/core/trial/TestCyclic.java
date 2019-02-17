@@ -1,8 +1,4 @@
-package example;
-
-import org.drogonframework.mapping.core.ClassTypeTreeTraverser;
-
-import example.test.ComplexObject;
+package org.drogonframework.mapping.core.trial;
 
 public class TestCyclic 
 {

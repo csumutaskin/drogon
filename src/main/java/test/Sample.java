@@ -1,4 +1,4 @@
-package example.test;
+package test;
 
 import java.util.List;
 import java.util.Map;
@@ -16,13 +16,18 @@ public class Sample
 	private Long[] myLongArray;
 	private List listWithoutGenerics;
 	private Map<String, Long> mapWithGenerics;
-	private List<List<String>> nestedListWithGenerics;//bunun extractionunda kaldim
+	private List<List<String>> nestedListWithGenerics;
+	private List<List<List<Set<Sample2>>>> umut;
 	private List<Map> nestedListAndMapWithoutGenerics;
 	private List<Set> nestedCollectionWithoutGenerics;
 	private Long[][] nestedLongArray;
 	private Sample2[][] nestedObjectArray;
-	private List<Sample3>[] arrayOfListOfSample3Object; 
-	private List<Long[]> nestedArrayInList;
+	private List<Sample3>[] arrayOfListOfSample3Object;
+	private List<Long[]> nestedArrayInList;//burdayim... 
+	private List<List<Long>[][]> aboooo;
+	private List<Integer> wrapperIntegerList;
+	//Mapleri de dene...hem ilk hem de 2. fieldini cek..
+	//duz generic dene Sample3<Sample2> gibi
 		
 	public Sample2 getMySample() {
 		return mySample;

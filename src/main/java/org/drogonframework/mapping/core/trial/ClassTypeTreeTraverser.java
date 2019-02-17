@@ -1,4 +1,4 @@
-package org.drogonframework.mapping.core;
+package org.drogonframework.mapping.core.trial;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;

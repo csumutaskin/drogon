@@ -1,4 +1,4 @@
-package org.drogonframework.mapping.core;
+package org.drogonframework.mapping.core.trial;
 
 import java.util.ArrayList;
 import java.util.HashMap;

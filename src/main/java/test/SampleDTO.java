@@ -1,4 +1,4 @@
-package example.test;
+package test;
 
 import org.drogonframework.mapping.entity.ConvertibleDTO;
 

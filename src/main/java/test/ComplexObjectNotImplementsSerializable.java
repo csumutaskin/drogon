@@ -1,4 +1,4 @@
-package example.test;
+package test;
 
 public class ComplexObjectNotImplementsSerializable 
 {
