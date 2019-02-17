@@ -1,6 +1,5 @@
 package org.drogonframework.mapping.processor;
 
-import java.util.List;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -13,13 +12,7 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.ArrayType;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic.Kind;
@@ -33,9 +26,6 @@ import com.google.auto.service.AutoService;
 @AutoService(Processor.class)
 public class ConverterNewProcessor extends AbstractProcessor 
 {
-	public static final String LIST_CLASS = "java.util.List";
-    public static final String MAP_CLASS = "java.util.Map";
-    
 	@SuppressWarnings("unused")
 	private Filer filer;
 	private Messager messager;
@@ -56,10 +46,8 @@ public class ConverterNewProcessor extends AbstractProcessor
 	
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnvironment)
 	{
-		try
-		{
-			messager.printMessage(Kind.NOTE, "Started processing...........................................");
-			if(annotations == null || annotations.isEmpty())
+		//messager.printMessage(Kind.NOTE, "Started processing...........................................");
+		if(annotations == null || annotations.isEmpty())
 		{
 			return false;
 		}
@@ -74,56 +62,23 @@ public class ConverterNewProcessor extends AbstractProcessor
 			for(Element element : elementsAnnotatedWith)
 			{
 				ElementTypeTreeTraverser et = new ElementTypeTreeTraverser(elementUtils, typeUtils, messager);
-				et.traverseUsingBFS(element);
-				
-//				messager.printMessage(Kind.NOTE, "Annotation is: " + annotation);
-//				messager.printMessage(Kind.NOTE, "Annotation's class/interface type is: " + element.getKind());
-//				messager.printMessage(Kind.NOTE, "Annotation's class short name is: " + element.getSimpleName());
-//				messager.printMessage(Kind.NOTE, "Annotation's class modifiers is: " + element.getModifiers());				
-//								
-//				messager.printMessage(Kind.NOTE, "*****************************************************************");
-//				printElements(element);
-//				messager.printMessage(Kind.NOTE, "*****************************************************************");
-//							
-//				TypeElement t = (TypeElement)element;
-//				
-//				//messager.printMessage(Kind.NOTE, "Annotation's class full name is: " + t.getQualifiedName());
-//				//messager.printMessage(Kind.NOTE, "......Super class...... " + t.getSuperclass());
-//				
-//				List<? extends TypeMirror> interfaces = t.getInterfaces();
-//				for(TypeMirror interfac : interfaces)
-//				{
-//					//messager.printMessage(Kind.NOTE, ".....................interfaces.................." + interfac.getKind() + "---" + interfac);
-//					
-//					TypeMirror comparable = processingEnv.getElementUtils().getTypeElement("org.drogonframework.mapping.entity.ConvertibleDTO").asType();
-//					boolean isComparable = processingEnv.getTypeUtils().isAssignable(interfac, comparable);
-////									
-////					if(isComparable)
-////						messager.printMessage(Kind.NOTE, "!!!..................interfaces is of type ConvertibleDTO TRUE !!!!..............");
-////					else
-////						messager.printMessage(Kind.NOTE, "!!!..................interfaces is of type ConvertibleDTO FALSE !!!!..............");
-//				}
-////				if(element.getKind() != ElementKind.CLASS)
-////				{
-////					messager.printMessage(Kind.ERROR, "@Converter is a class level annotation only",element);
-////				}
-////				else
-////				{
-////					messager.printMessage(Kind.NOTE, "It is right to put this annotation as class level :)");
-////				}
+				try
+				{
+					et.traverseUsingBFS(element);
+					//et.printGraph();
+				}
+				catch(RuntimeException re)
+				{
+					messager.printMessage(Kind.ERROR, "Error Message is: "  + re.getMessage());
+					return false;
+				}
+			
 			}
-			}
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
-			messager.printMessage(Kind.NOTE, e.getMessage());
 		}
 		return false;
 	}
 	
-
-	
+	/*
 	private void printElements(Element classElement)
 	{
 		
@@ -201,4 +156,5 @@ public class ConverterNewProcessor extends AbstractProcessor
             counter++;
         }
 	}
+	*/
 }

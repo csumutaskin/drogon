@@ -14,7 +14,7 @@ import javax.tools.Diagnostic.Kind;
 
 public class ElementTypeTreeToElementTypeGraphConverter 
 {
-private Map<Element, LinkedHashSet<Element>> adjacencyList = new HashMap<>();
+	private Map<Element, LinkedHashSet<Element>> adjacencyList = new HashMap<>();
 	
 	private List<Element> classesRegistered;
 	private Messager messager;
@@ -34,7 +34,7 @@ private Map<Element, LinkedHashSet<Element>> adjacencyList = new HashMap<>();
 	{
 		if(!classesRegistered.contains(parentNode))
 		{
-			throw new RuntimeException("no parent node in graph");//TODO: Define own exception later on...
+			throw new RuntimeException("no parent node in graph");//TODO: Define own exception later on...						
 		}
 			
 		//register class if not exists
